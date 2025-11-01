@@ -50,6 +50,7 @@ target_link_libraries(wwcommon INTERFACE
     milesstub
     gamespy
     $<$<BOOL:${WIN32}>:d3d9lib>
+    $<$<BOOL:${LINUX}>:dxvk>
 )
 
 if(TARGET ffmpeg)

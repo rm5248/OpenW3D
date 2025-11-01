@@ -73,6 +73,8 @@ if(WIN32)
     endif()
 
     include(dx9)
+elseif(LINUX)
+    include(dxvk)
 endif()
 
 include(gamespy)
