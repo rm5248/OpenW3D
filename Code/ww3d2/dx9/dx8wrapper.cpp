@@ -88,56 +88,7 @@ const int DEFAULT_TEXTURE_BIT_DEPTH = 16;
 **
 ***********************************************************************************/
 
-static HWND						_Hwnd															= NULL;
-bool								DX8Wrapper::IsInitted									= false;
-bool								DX8Wrapper::_EnableTriangleDraw						= true;
 
-int								DX8Wrapper::CurRenderDevice							= -1;
-int								DX8Wrapper::ResolutionWidth							= DEFAULT_RESOLUTION_WIDTH;
-int								DX8Wrapper::ResolutionHeight							= DEFAULT_RESOLUTION_HEIGHT;
-int								DX8Wrapper::BitDepth										= DEFAULT_BIT_DEPTH;
-int								DX8Wrapper::TextureBitDepth							= DEFAULT_TEXTURE_BIT_DEPTH;
-bool								DX8Wrapper::IsWindowed									= false;
-
-D3DMATRIX						DX8Wrapper::old_world;
-D3DMATRIX						DX8Wrapper::old_view;
-D3DMATRIX						DX8Wrapper::old_prj;
-
-bool								DX8Wrapper::world_identity;
-unsigned							DX8Wrapper::RenderStates[256];
-unsigned							DX8Wrapper::TextureStageStates[MAX_TEXTURE_STAGES][32];
-unsigned							DX8Wrapper::TextureSamplerStates[MAX_TEXTURE_STAGES][14];
-IDirect3DBaseTexture9 *		DX8Wrapper::Textures[MAX_TEXTURE_STAGES];
-RenderStateStruct				DX8Wrapper::render_state;
-unsigned							DX8Wrapper::render_state_changed;
-
-bool								DX8Wrapper::FogEnable									= false;
-D3DCOLOR							DX8Wrapper::FogColor										= 0;
-
-IDirect3D9 *					DX8Wrapper::D3DInterface								= NULL;
-IDirect3DDevice9 *			DX8Wrapper::D3DDevice									= NULL;
-IDirect3DSurface9 *			DX8Wrapper::CurrentRenderTarget						= NULL;
-IDirect3DSurface9 *			DX8Wrapper::DefaultRenderTarget						= NULL;
-IDirect3DSurface9 *			DX8Wrapper::DefaultDepthBuffer						= NULL;
-bool								DX8Wrapper::IsRenderToTexture							= false;
-
-unsigned							DX8Wrapper::matrix_changes								= 0;
-unsigned							DX8Wrapper::material_changes							= 0;
-unsigned							DX8Wrapper::vertex_buffer_changes					= 0;
-unsigned							DX8Wrapper::index_buffer_changes                = 0;
-unsigned							DX8Wrapper::light_changes								= 0;
-unsigned							DX8Wrapper::texture_changes							= 0;
-unsigned							DX8Wrapper::render_state_changes						= 0;
-unsigned							DX8Wrapper::texture_stage_state_changes			= 0;
-unsigned							DX8Wrapper::sampler_state_changes			= 0;
-unsigned							DX8Wrapper::_MainThreadID								= 0;
-bool								DX8Wrapper::CurrentDX8LightEnables[4];
-bool								DX8Wrapper::IsDeviceLost;
-int								DX8Wrapper::ZBias;
-float								DX8Wrapper::ZNear;
-float								DX8Wrapper::ZFar;
-Matrix4							DX8Wrapper::ProjectionMatrix;
-int							DX8Wrapper::BaseVertexIndex;
 
 DX8Caps*							DX8Wrapper::CurrentCaps;
 
@@ -196,6 +147,40 @@ void Non_Fatal_Log_DX8_ErrorCode(HRESULT res,const char * file,int line)
 	}
 }
 
+
+DX8Wrapper::DX8Wrapper(){
+    Hwnd															= NULL;
+    IsInitted									= false;
+    _EnableTriangleDraw						= true;
+
+    CurRenderDevice							= -1;
+    ResolutionWidth							= DEFAULT_RESOLUTION_WIDTH;
+    ResolutionHeight							= DEFAULT_RESOLUTION_HEIGHT;
+    BitDepth										= DEFAULT_BIT_DEPTH;
+    TextureBitDepth							= DEFAULT_TEXTURE_BIT_DEPTH;
+    IsWindowed									= false;
+
+    FogEnable									= false;
+    FogColor										= 0;
+
+    D3DInterface								= NULL;
+    D3DDevice									= NULL;
+    CurrentRenderTarget						= NULL;
+    DefaultRenderTarget						= NULL;
+    DefaultDepthBuffer						= NULL;
+    IsRenderToTexture							= false;
+
+    matrix_changes								= 0;
+    material_changes							= 0;
+    vertex_buffer_changes					= 0;
+    index_buffer_changes                = 0;
+    light_changes								= 0;
+    texture_changes							= 0;
+    render_state_changes						= 0;
+    texture_stage_state_changes			= 0;
+    sampler_state_changes			= 0;
+    _MainThreadID								= 0;
+}
 
 
 bool DX8Wrapper::Init(void * hwnd, bool lite)
@@ -3426,4 +3411,19 @@ void DX8Wrapper::Set_DX8_Render_State(D3DRENDERSTATETYPE state, unsigned value)
 	RenderStates[state]=value;
 	DX8CALL(SetRenderState( state, value ));
 	DX8_RECORD_RENDER_STATE_CHANGE();
+}
+
+void DX8Wrapper::Clear_Full_Screen(){
+    D3DVIEWPORT9 vp;
+    int width, height, bits;
+    bool windowed;
+    Get_Render_Target_Resolution(width, height, bits, windowed);
+    vp.X = 0;
+    vp.Y = 0;
+    vp.Width = width;
+    vp.Height = height;
+    vp.MinZ = 0.0f;;
+    vp.MaxZ = 1.0f;
+    DX8Wrapper::Set_Viewport(&vp);
+    DX8Wrapper::Clear(clear, clearz, color);
 }

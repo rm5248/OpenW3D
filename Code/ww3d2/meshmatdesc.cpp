@@ -40,9 +40,8 @@
 #include "texture.h"
 #include "vertmaterial.h"
 #include "realcrc.h"
-#include	"dx8wrapper.h"
-#include "dx8caps.h"
 #include "meshmdl.h"
+#include "ww3d2_util.h"
 
 
 /**************************************************************************************************
@@ -751,12 +750,12 @@ void MeshMatDescClass::Post_Load_Process(bool lighting_enabled,MeshModelClass * 
 			unsigned * emissive_array = ColorArray[1]->Get_Array();
 
 			for (int vidx=0; vidx<VertexCount; vidx++) {
-				Vector4 diffuse=DX8Wrapper::Convert_Color(diffuse_array[vidx]);
-				Vector4 emissive=DX8Wrapper::Convert_Color(emissive_array[vidx]);
+                Vector4 diffuse=WW3D2_Util::Convert_Color(diffuse_array[vidx]);
+                Vector4 emissive=WW3D2_Util::Convert_Color(emissive_array[vidx]);
 				diffuse.X *= emissive.X;
 				diffuse.Y *= emissive.Y;
 				diffuse.Z *= emissive.Z;
-				diffuse_array[vidx]=DX8Wrapper::Convert_Color(diffuse);
+                diffuse_array[vidx]=WW3D2_Util::Convert_Color(diffuse);
 			}
 		}
 		DIGSource[pass]=VertexMaterialClass::MATERIAL;	// DIG channel no more
@@ -780,12 +779,12 @@ void MeshMatDescClass::Post_Load_Process(bool lighting_enabled,MeshModelClass * 
 
 				// If only diffuse is used apply diffuse to color channel and set diffuse source to color 1
 				if (diffuse_used && !ambient_used && !emissive_used) {
-					Vector4 diffuse=DX8Wrapper::Convert_Color(diffuse_array[vidx]);
+                    Vector4 diffuse=WW3D2_Util::Convert_Color(diffuse_array[vidx]);
 					diffuse.X *= mtl_diffuse.X;
 					diffuse.Y *= mtl_diffuse.Y;
 					diffuse.Z *= mtl_diffuse.Z;
 					diffuse.W *= mtl_opacity;
-					diffuse_array[vidx]=DX8Wrapper::Convert_Color(diffuse);
+                    diffuse_array[vidx]=WW3D2_Util::Convert_Color(diffuse);
 
 					mtl->Set_Ambient_Color_Source(VertexMaterialClass::MATERIAL);
 					mtl->Set_Diffuse_Color_Source(VertexMaterialClass::COLOR1);
@@ -797,12 +796,12 @@ void MeshMatDescClass::Post_Load_Process(bool lighting_enabled,MeshModelClass * 
 				// ambient are different but is probably the most reasonable thing to do. Why set
 				// diffuse and ambient differently anyway?)
 				if (diffuse_used && ambient_used && !emissive_used) {
-					Vector4 diffuse=DX8Wrapper::Convert_Color(diffuse_array[vidx]);
+                    Vector4 diffuse=WW3D2_Util::Convert_Color(diffuse_array[vidx]);
 					diffuse.X *= mtl_diffuse.X;
 					diffuse.Y *= mtl_diffuse.Y;
 					diffuse.Z *= mtl_diffuse.Z;
 					diffuse.W *= mtl_opacity;
-					diffuse_array[vidx]=DX8Wrapper::Convert_Color(diffuse);
+                    diffuse_array[vidx]=WW3D2_Util::Convert_Color(diffuse);
 
 					mtl->Set_Ambient_Color_Source(VertexMaterialClass::COLOR1);
 					mtl->Set_Diffuse_Color_Source(VertexMaterialClass::COLOR1);
@@ -811,12 +810,12 @@ void MeshMatDescClass::Post_Load_Process(bool lighting_enabled,MeshModelClass * 
 
 				// If only ambient is used apply ambient to color channel and set ambient source to color 1
 				if (!diffuse_used && ambient_used && !emissive_used) {
-					Vector4 diffuse=DX8Wrapper::Convert_Color(diffuse_array[vidx]);
+                    Vector4 diffuse=WW3D2_Util::Convert_Color(diffuse_array[vidx]);
 					diffuse.X *= mtl_ambient.X;
 					diffuse.Y *= mtl_ambient.Y;
 					diffuse.Z *= mtl_ambient.Z;
 					diffuse.W *= mtl_opacity;
-					diffuse_array[vidx]=DX8Wrapper::Convert_Color(diffuse);
+                    diffuse_array[vidx]=WW3D2_Util::Convert_Color(diffuse);
 
 					mtl->Set_Ambient_Color_Source(VertexMaterialClass::COLOR1);
 					mtl->Set_Diffuse_Color_Source(VertexMaterialClass::MATERIAL);
@@ -825,12 +824,12 @@ void MeshMatDescClass::Post_Load_Process(bool lighting_enabled,MeshModelClass * 
 
 				// If only emissive is used apply emissive to color channel, set diffuse source to color 1, and turn off lighting
 				if (!diffuse_used && !ambient_used && emissive_used) {
-					Vector4 diffuse=DX8Wrapper::Convert_Color(diffuse_array[vidx]);
+                    Vector4 diffuse=WW3D2_Util::Convert_Color(diffuse_array[vidx]);
 					diffuse.X *= mtl_emissive.X;
 					diffuse.Y *= mtl_emissive.Y;
 					diffuse.Z *= mtl_emissive.Z;
 					diffuse.W *= mtl_opacity;
-					diffuse_array[vidx]=DX8Wrapper::Convert_Color(diffuse);
+                    diffuse_array[vidx]=WW3D2_Util::Convert_Color(diffuse);
 
 					mtl->Set_Ambient_Color_Source(VertexMaterialClass::MATERIAL);
 					mtl->Set_Diffuse_Color_Source(VertexMaterialClass::COLOR1);
@@ -853,15 +852,23 @@ void MeshMatDescClass::Post_Load_Process(bool lighting_enabled,MeshModelClass * 
 	*/
 	for (pass=0; pass<PassCount; pass++) {
 		bool kill_pass = false;
+#if ENABLE_DX9_BACKEND
+        DX8Wrapper* wrapper = reinterpret_cast<DX8Wrapper*>(WW3D::ww3d_backend);
+        bool support_bump_envmaps = wrapper->Get_Current_Caps()->Support_Bump_Envmap();
+        bool support_bump_env_lum = wrapper->Get_Current_Caps()->Support_Bump_Envmap_Luminance();
+#else
+        bool support_bump_envmaps = true;
+        bool support_bump_env_lum = true;
+#endif
 
 		if ( (Shader[pass].Get_Primary_Gradient() == ShaderClass::GRADIENT_BUMPENVMAP) &&
-			  (!DX8Wrapper::Is_Initted() || DX8Wrapper::Get_Current_Caps()->Support_Bump_Envmap() == false) )
+              (support_bump_envmaps == false) )
 		{
 			kill_pass = true;
 		}
 
 		if ( (Shader[pass].Get_Primary_Gradient() == ShaderClass::GRADIENT_BUMPENVMAPLUMINANCE) &&
-			  (!DX8Wrapper::Is_Initted() || DX8Wrapper::Get_Current_Caps()->Support_Bump_Envmap_Luminance() == false) )
+              (support_bump_env_lum == false) )
 		{
 			kill_pass = true;
 		}
@@ -981,7 +988,8 @@ void MeshMatDescClass::Configure_Material(VertexMaterialClass * mtl,int pass,boo
 
 bool MeshMatDescClass::Do_Mappers_Need_Normals(void)
 {
-	if (DX8Wrapper::Is_Initted() && DX8Wrapper::Get_Current_Caps()->Support_NPatches() && WW3D::Get_NPatches_Level()>1) return true;
+    // rm5248: 2025-11-30: unsure if this is needed
+    // if (DX8Wrapper::Is_Initted() && DX8Wrapper::Get_Current_Caps()->Support_NPatches() && WW3D::Get_NPatches_Level()>1) return true;
 
 	for (int pass=0; pass<PassCount; pass++) {
 		/*

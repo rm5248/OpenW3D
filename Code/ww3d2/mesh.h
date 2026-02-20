@@ -47,7 +47,9 @@
 #include "rendobj.h"
 #include "bittype.h"
 #include "w3derr.h"
-#include "dx8polygonrenderer.h"
+#if ENABLE_DX9_BACKEND
+#include "dx9/dx8polygonrenderer.h"
+#endif
 
 class MeshBuilderClass;
 class HModelClass;
@@ -204,12 +206,14 @@ protected:
 
 	unsigned int *					UserLighting;			// optional array of user lighting values
 
+#if ENABLE_DX9_BACKEND
 	// DX8 Mesh rendering system data
 	DX8PolygonRendererList		PolygonRendererList;
+    friend class DX8MeshRendererClass;
+    friend class DX8PolygonRendererClass;
+#endif
 
 	friend class MeshBuilderClass;
-	friend class DX8MeshRendererClass;
-	friend class DX8PolygonRendererClass;
 };
 
 inline MeshModelClass * MeshClass::Peek_Model(void)

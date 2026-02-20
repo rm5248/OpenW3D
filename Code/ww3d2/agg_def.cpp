@@ -43,7 +43,7 @@
 #include "texture.h"
 #include "wwstring.h"
 
-#include <windows.h>
+#include <filesystem>
 
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -349,8 +349,9 @@ AggregateDefClass::Load_Assets (const char *passet_name)
 	if (passet_name != NULL) {
 		
 		// Determine what the current working directory is
-		char path[MAX_PATH];
-		::GetCurrentDirectoryA (sizeof (path), path);
+        char path[MAX_PATH];
+        std::filesystem::path curr_path = std::filesystem::current_path();
+        strncpy(path, curr_path.c_str(), sizeof(path));
 
 		// Ensure the path is directory delimited
 		if (path[::strlen(path)-1] != '\\') {
@@ -362,7 +363,7 @@ AggregateDefClass::Load_Assets (const char *passet_name)
 		::strcat (path, ".w3d");
 
 		// If the file exists, then load it into the asset manager.
-		if (::GetFileAttributesA (path) != 0xFFFFFFFF) {
+        if (std::filesystem::exists(path)) {
 			retval = WW3DAssetManager::Get_Instance()->Load_3D_Assets (path);
 		}
 	}

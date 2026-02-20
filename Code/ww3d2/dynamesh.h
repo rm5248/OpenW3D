@@ -45,7 +45,7 @@
 #include "matinfo.h"
 #include "rendobj.h"
 #include "polyinfo.h"
-#include "dx8wrapper.h"
+#include "ww3d2_util.h"
 
 class	ShaderClass;
 class	IntersectionClass;
@@ -283,7 +283,7 @@ public:
 		unsigned * color = Model->Get_Color_Array(color_array_index);
 		assert(color);
 
-		color[VertCount]=DX8Wrapper::Convert_Color_Clamp(Vector4(r,g,b,a));
+        color[VertCount]=WW3D2_Util::Convert_Color_Clamp(Vector4(r,g,b,a));
 //		color[VertCount].X = r;
 //		color[VertCount].Y = g;
 //		color[VertCount].Z = b;
@@ -366,7 +366,7 @@ public:
 		CurVertexColor[color_array_index].W = color.W;
 //		Vector4 * color_list = Model->Get_Color_Array(color_array_index);
 		unsigned * color_list = Model->Get_Color_Array(color_array_index);
-		color_list[index] = DX8Wrapper::Convert_Color_Clamp(color);
+        color_list[index] = WW3D2_Util::Convert_Color_Clamp(color);
 	}
 
 
@@ -490,7 +490,7 @@ void DynamicMeshClass::Switch_To_Multi_Vertex_Color(int color_array_index)
 */
 	unsigned * color_list = Model->Get_Color_Array(color_array_index);
 	// set the proper color for all the existing vertices
-	unsigned vertex_color=DX8Wrapper::Convert_Color_Clamp(CurVertexColor[color_array_index]);
+    unsigned vertex_color=WW3D2_Util::Convert_Color_Clamp(CurVertexColor[color_array_index]);
 	for (int lp = 0; lp < VertCount; lp++) {
 		color_list[lp]=vertex_color;
 	}

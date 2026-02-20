@@ -47,6 +47,8 @@
 #include "layer.h"
 #include "w3derr.h"
 #include "robjlist.h"
+#include "meshrenderer.h"
+#include "ww3dbackend.h"
 
 class		SceneClass;
 class		CameraClass;
@@ -283,6 +285,9 @@ public:
    static int             UserStat0;
    static int             UserStat1;
    static int             UserStat2;
+
+   static MeshRenderer* meshRenderer;
+   static WW3DBackend* ww3d_backend;
 
 private:
 

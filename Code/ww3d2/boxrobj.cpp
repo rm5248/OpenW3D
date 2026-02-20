@@ -97,13 +97,16 @@
 #include "rinfo.h"
 #include "coltest.h"
 #include "inttest.h"
-#include "dx8wrapper.h"
-#include "dx8indexbuffer.h"
-#include "dx8vertexbuffer.h"
-#include "dx8fvf.h"
+#if ENABLE_DX9_BACKEND
+#include "dx9/dx8wrapper.h"
+#include "dx9/dx8indexbuffer.h"
+#include "dx9/dx8vertexbuffer.h"
+#include "dx9/dx8fvf.h"
+#endif
 #include "sortingrenderer.h"
 #include "visrasterizer.h"
 #include "meshgeometry.h"
+#include "ww3d2_util.h"
 
 
 #define NUM_BOX_VERTS	8
@@ -458,9 +461,11 @@ void BoxRenderObjClass::render_box(RenderInfoClass & rinfo,const Vector3 & cente
 		/*
 		** Dump the box vertices into the sorting dynamic vertex buffer. 
 		*/
-		DWORD color = DX8Wrapper::Convert_Color(Color,Opacity);
-		
+        unsigned int color = WW3D2_Util::Convert_Color(Color,Opacity);
+
+#if ENABLE_DX9_BACKEND
 		int buffer_type = BUFFER_TYPE_DYNAMIC_DX8;
+        DX8Wrapper* wrapper = reinterpret_cast<DX8Wrapper*>(WW3D::ww3d_backend);
 
 		DynamicVBAccessClass vbaccess(buffer_type,dynamic_fvf_type,NUM_BOX_VERTS);
 		{
@@ -504,18 +509,20 @@ void BoxRenderObjClass::render_box(RenderInfoClass & rinfo,const Vector3 & cente
 		/*
 		** Apply the shader and material
 		*/
-		DX8Wrapper::Set_Material(_BoxMaterial);
-		DX8Wrapper::Set_Shader(_BoxShader);
-		DX8Wrapper::Set_Texture(0,NULL);
+        wrapper->Set_Material(_BoxMaterial);
+        wrapper->Set_Shader(_BoxShader);
+        wrapper->Set_Texture(0,NULL);
 		
-		DX8Wrapper::Set_Index_Buffer(ibaccess,0);
-		DX8Wrapper::Set_Vertex_Buffer(vbaccess);
+        wrapper->Set_Index_Buffer(ibaccess,0);
+        wrapper->Set_Vertex_Buffer(vbaccess);
 
 		SphereClass sphere;
 		Get_Obj_Space_Bounding_Sphere(sphere); 
 
-		DX8Wrapper::Draw_Triangles(buffer_type,0,NUM_BOX_FACES,0,NUM_BOX_VERTS);
+        wrapper->Draw_Triangles(buffer_type,0,NUM_BOX_FACES,0,NUM_BOX_VERTS);
+#endif
 	}
+
 }
 
 
@@ -704,7 +711,10 @@ void AABoxRenderObjClass::Render(RenderInfoClass & rinfo)
 {
 	Matrix3D temp(1);
 	temp.Translate(Transform.Get_Translation());
-	DX8Wrapper::Set_Transform(D3DTS_WORLD,temp);
+#if ENABLE_DX9_BACKEND
+    DX8Wrapper* wrapper = reinterpret_cast<DX8Wrapper*>(WW3D::ww3d_backend);
+    wrapper->Set_Transform(D3DTS_WORLD,temp);
+#endif
 	render_box(rinfo,ObjSpaceCenter,ObjSpaceExtent);
 }
 
@@ -1088,7 +1098,10 @@ int OBBoxRenderObjClass::Class_ID(void) const
  *=============================================================================================*/
 void OBBoxRenderObjClass::Render(RenderInfoClass & rinfo)
 {
-	DX8Wrapper::Set_Transform(D3DTS_WORLD,Transform);
+#if ENABLE_DX9_BACKEND
+    DX8Wrapper* wrapper = reinterpret_cast<DX8Wrapper*>(WW3D::ww3d_backend);
+    wrapper->Set_Transform(D3DTS_WORLD,Transform);
+#endif
 	render_box(rinfo,ObjSpaceCenter,ObjSpaceExtent);
 }
 
