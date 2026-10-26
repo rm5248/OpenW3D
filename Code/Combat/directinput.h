@@ -44,6 +44,8 @@
 #include "vector3.h"
 #include "vector2.h"
 
+#include "openw3d_input.h"
+
 typedef enum {
 	DIK_SHIFT = 0xF0,
 	DIK_CONTROL,
