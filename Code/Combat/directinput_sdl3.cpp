@@ -94,7 +94,7 @@ void DirectInput::ReadKeyboard( void )
 
 void DirectInput::ReadMouse( void )
 {
-	uint32_t now_ms = timeGetTime();
+	uint32_t now_ms = TIMEGETTIME();
 
 	if(now_ms - last_mouse_time < 16){
 		// don't clear out the data if it's too new, otherwise we don't get any mouse events
@@ -149,7 +149,7 @@ void DirectInput::SDL3_Mouse_Motion_Event(SDL_MouseMotionEvent* evt){
 	DIMouseAxis[1] = (int)evt->yrel;
 	DIMouseAxis[0] = (int)evt->xrel;
 
-	last_mouse_time = timeGetTime();
+	last_mouse_time = TIMEGETTIME();
 }
 
 void DirectInput::SDL3_Mouse_Button_Event(SDL_MouseButtonEvent* evt){
